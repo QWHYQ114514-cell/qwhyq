@@ -33,7 +33,7 @@ export async function GET(context: APIContext) {
   return rss({
     title: 'WHY',
     description: '一个人工智能专业学生的成长档案：项目、竞赛、思考。',
-    site: context.site ?? 'https://qwhyq.com',
+    site: context.site ?? 'https://qwhyq.pages.dev',
     items,
     customData: '<language>zh-cn</language>',
   });

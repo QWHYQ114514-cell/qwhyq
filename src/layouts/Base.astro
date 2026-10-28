@@ -18,7 +18,7 @@ const {
 } = Astro.props;
 
 const pageTitle = title ? `${title} · WHY` : 'WHY · 无限进步';
-const site = Astro.site ?? new URL('https://qwhyq.com');
+const site = Astro.site ?? new URL('https://qwhyq.pages.dev');
 const canonical = new URL(Astro.url.pathname, site);
 ---
 

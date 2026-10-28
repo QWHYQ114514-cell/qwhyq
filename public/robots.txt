@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://qwhyq.com/sitemap.xml
+Sitemap: https://qwhyq.pages.dev/sitemap.xml

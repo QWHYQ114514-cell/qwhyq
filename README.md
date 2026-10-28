@@ -3,7 +3,7 @@
 一个 AI 专业学生的成长档案：项目、竞赛、思考、Now。
 纯静态站，内容全是 Markdown，没有数据库、没有后台、没有客户端框架。
 
-- 站点：https://qwhyq.com ※ 品牌已改为 `WHY`，域名仍是 `qwhyq.com`（域名是独立的事，见文末）
+- 站点：https://qwhyq.pages.dev（托管在 Cloudflare Pages，每次 push 自动部署）
 - 技术栈：Astro 5 + TypeScript + 原生 CSS（设计 token 走 CSS 变量）
 - 构建产物：13 个 HTML 页面，零框架 JS（只有约 20 行滚动揭示）
 
@@ -122,23 +122,24 @@ looking: 一个能长期做下去的方向，暂时不急着定
 
 ---
 
-## 四、部署
+## 四、部署（已在线上）
 
-仓库已经初始化并提交过（`git log` 里有一条 `feat: WHY 个人站`），本地是 `main` 分支。
+**正式地址：https://qwhyq.pages.dev** —— 托管在 Cloudflare Pages，仓库 `QWHYQ114514-cell/qwhyq` 已连接，**push 即自动部署**。
 
-1. 在 GitHub 建一个空仓库（不要勾选 README / .gitignore），然后：
+没有买域名，所以 `astro.config.mjs` 里的 `site` 就是 `https://qwhyq.pages.dev`。canonical、og:url、og:image、sitemap、rss 全部从这一处派生——哪天买了域名，只改这一个值，再推一次即可。
 
-   ```bash
-   git remote add origin https://github.com/QWHYQ114514-cell/qwhyq.git
-   git push -u origin main
-   ```
+日常更新只需要：
 
-2. 打开 [vercel.com](https://vercel.com) → Add New → Project → Import 这个仓库。
-   框架会被自动识别为 **Astro**；构建命令 `pnpm build`、输出目录 `dist`，都不用改。
-   环境变量一个都不需要。
+```bash
+git add -A
+git commit -m "content: 加了一篇..."
+git push
+```
 
-3. 域名：Vercel 项目 → Settings → Domains → 添加 `qwhyq.com`，按提示到域名商改 DNS。
-   还没配好之前，`<repo>.vercel.app` 就能直接用。
+约 90 秒后 Cloudflare 构建完成，线上自动更新。
+
+想改构建配置：Cloudflare 控制台 → Workers & Pages → `qwhyq` → Settings → Build。
+当前设置：Framework preset `Astro`、Build command `pnpm build`、Build output directory `dist`、Production branch `main`。
 
 上线后自检这几项（都已经是现成的）：
 
