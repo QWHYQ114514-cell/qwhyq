@@ -29,7 +29,7 @@ const { title, date, track, team, result } = contest.data;
 
       <h1 class="h1">{title}</h1>
 
-      <dl class="meta">
+      <dl class="meta" data-reveal>
         <div>
           <dt>形式</dt>
           <dd>{track}</dd>
@@ -46,7 +46,7 @@ const { title, date, track, team, result } = contest.data;
 
       <hr class="rule" />
 
-      <div class="prose">
+      <div class="prose" data-reveal>
         <Content />
       </div>
     </div>

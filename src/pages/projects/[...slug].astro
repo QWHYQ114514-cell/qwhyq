@@ -30,7 +30,7 @@ const { title, status, start, role, stack, repo, demo, summary } = project.data;
       <h1 class="h1">{title}</h1>
       <p class="lead detail-lead">{summary}</p>
 
-      <dl class="meta">
+      <dl class="meta" data-reveal>
         <div>
           <dt>角色</dt>
           <dd>{role}</dd>
@@ -67,7 +67,7 @@ const { title, status, start, role, stack, repo, demo, summary } = project.data;
 
       <hr class="rule" />
 
-      <div class="prose">
+      <div class="prose" data-reveal>
         <Content />
       </div>
     </div>
