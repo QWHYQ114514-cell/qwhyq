@@ -36,7 +36,9 @@ const isActive = (href: string) =>
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--c-canvas);
+    /* 容器本身必须透明：backdrop-filter 要"看见"后面的内容，
+       祖先一旦有不透明底色，模糊出来的就是那块纯色，等于没有毛玻璃 */
+    background: transparent;
   }
 
   .nav-bar {
@@ -48,6 +50,17 @@ const isActive = (href: string) =>
     padding-inline: 12px;
     border-radius: 16px 16px 0 0;
     background: var(--c-pink);
+    transition:
+      background-color 260ms var(--ease-apple),
+      backdrop-filter 260ms var(--ease-apple),
+      -webkit-backdrop-filter 260ms var(--ease-apple);
+  }
+
+  /* 往下滚之后：同一种粉，只是变半透明 + 模糊，色相不变 */
+  .nav-wrap.is-scrolled .nav-bar {
+    background: rgba(244, 177, 197, 0.68);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
   }
 
   .link {

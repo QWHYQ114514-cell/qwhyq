@@ -59,8 +59,20 @@ const canonical = new URL(Astro.url.pathname, site);
 
     <script is:inline>
       (function () {
+        /* ---------- 导航栏：滚动后变毛玻璃 ---------- */
+        var nav = document.querySelector('.nav-wrap');
+        if (nav) {
+          var syncNav = function () {
+            nav.classList.toggle('is-scrolled', (window.scrollY || 0) > 8);
+          };
+          window.addEventListener('scroll', syncNav, { passive: true });
+          syncNav();
+        }
+
+        /* ---------- 文字浮现 ---------- */
         var els = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
         if (!els.length) return;
+
         var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (reduce || !('IntersectionObserver' in window)) {
           els.forEach(function (el) {
@@ -68,20 +80,49 @@ const canonical = new URL(Astro.url.pathname, site);
           });
           return;
         }
-        var io = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('is-in');
-                io.unobserve(entry.target);
-              }
-            });
-          },
-          { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
-        );
-        els.forEach(function (el) {
-          io.observe(el);
-        });
+
+        /*
+         * 等字体就绪再开始：明朝体是按 unicode-range 切片异步加载的，
+         * 先显示回退字体会让文字"抽"一下（swap），浮现动画也就看不出来了。
+         * 等字体这几百毫秒里，元素本来就是 opacity:0 且已经绘制过，
+         * 所以之后再加 is-in，过渡一定跑得起来（不需要再等帧）。
+         * 但最多等 700ms，不能因为字体慢就让内容一直藏着。
+         */
+        var reveal = function (el) {
+          el.classList.add('is-in');
+        };
+
+        var fontsReady =
+          document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+
+        var start = function () {
+          var io = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  reveal(entry.target);
+                  io.unobserve(entry.target);
+                }
+              });
+            },
+            { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
+          );
+          els.forEach(function (el) {
+            io.observe(el);
+          });
+        };
+
+        Promise.race([fontsReady, new Promise(function (r) { setTimeout(r, 1200); })]).then(start);
+
+        /* 保底：4 秒后凡是还在视口里却没显示的，直接显示。
+           防的是浏览器把 IntersectionObserver 节流掉导致内容永远不出现。 */
+        setTimeout(function () {
+          els.forEach(function (el) {
+            if (el.classList.contains('is-in')) return;
+            var r = el.getBoundingClientRect();
+            if (r.top < window.innerHeight && r.bottom > 0) reveal(el);
+          });
+        }, 4000);
       })();
     </script>
   </body>
