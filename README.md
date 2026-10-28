@@ -159,7 +159,6 @@ looking: 一个能长期做下去的方向，暂时不急着定
 
 - [ ] 替换 `src/content/` 下全部示例内容（3 项目 / 1 竞赛 / 2 思考 / Now）
 - [ ] About 页的「经历」「技能」改成你自己的
-- [ ] `hi@qwhyq.com` 是占位邮箱（`src/components/Footer.astro`、`src/pages/about.astro`）
 - [ ] 人像照：About 页现在没有照片位，照片到位后再加
 - [ ] 可选：Pagefind 静态搜索（内容超过 20 篇再加）
 - [ ] 可选：深色模式（颜色已经全部走变量，加一组值即可）
