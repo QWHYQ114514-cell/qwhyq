@@ -69,47 +69,45 @@ const canonical = new URL(Astro.url.pathname, site);
           syncNav();
         }
 
-        /* ---------- 文字浮现 ---------- */
+        /* ---------- 整页字体门禁 + 逐块浮现 ---------- */
         var els = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
-        if (!els.length) return;
 
         var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (reduce || !('IntersectionObserver' in window)) {
+          document.documentElement.classList.add('fonts-ready');
           els.forEach(function (el) {
             el.classList.add('is-in');
           });
           return;
         }
 
-        /*
-         * 字体是拦路的：明朝体按 unicode-range 切成上百个分片，
-         * 某个页面用到的字片没下载完，浏览器就会先画回退字体再 swap。
-         *
-         * 注意 document.fonts.ready 只是"等已经进入下载队列的字体"，
-         * 正文（含章节标题）里的字片可能还没被请求，它就返回了 ——
-         * 于是正文先显示回退字体、随后突然变成明朝。
-         * 所以这里按每个元素实际用到的文字，用 document.fonts.load 主动点名加载。
-         */
         var reveal = function (el) {
           el.classList.add('is-in');
         };
 
-        var fontSpec = function (el) {
-          var cs = window.getComputedStyle(el);
-          var family = (cs.fontFamily || 'sans-serif').split(',')[0].replace(/["']/g, '').trim();
-          return cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + family;
-        };
+        /*
+         * 按"整页文字"加载字体，而不是只按几个 data-reveal 元素。
+         * 明朝体切成上百片，页面里除了标题还有卡片标题、列表行、Now 区…
+         * 它们不带 data-reveal，照样会先画回退字体再变 —— 所以门禁必须开在整页。
+         */
+        var pageText = ((document.querySelector('main') || document.body).textContent || '')
+          .replace(/\s+/g, ' ')
+          .slice(0, 4000);
 
         var loaders = [];
-        if (document.fonts && document.fonts.load) {
-          els.slice(0, 30).forEach(function (el) {
-            var text = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 240);
-            if (!text) return;
-            loaders.push(document.fonts.load(fontSpec(el), text).catch(function () {}));
-          });
+        if (document.fonts && document.fonts.load && pageText) {
+          loaders.push(
+            document.fonts.load('600 16px "Noto Serif SC"', pageText).catch(function () {})
+          );
+          loaders.push(
+            document.fonts.load('700 16px "Noto Serif SC"', pageText).catch(function () {})
+          );
         }
 
         var start = function () {
+          // 打开整页门禁：main 从 opacity 0 淡入
+          document.documentElement.classList.add('fonts-ready');
+
           /*
            * 视口内的元素直接显示，不依赖 IntersectionObserver ——
            * IO 在某些环境（省电模式、无头浏览器、后台标签页）会被节流，
@@ -124,7 +122,6 @@ const canonical = new URL(Astro.url.pathname, site);
           });
 
           if (!rest.length) return;
-
           var io = new IntersectionObserver(
             function (entries) {
               entries.forEach(function (entry) {
@@ -149,15 +146,16 @@ const canonical = new URL(Astro.url.pathname, site);
         Promise.race([
           Promise.all(loaders),
           new Promise(function (r) {
-            setTimeout(r, 900);
+            setTimeout(r, 1500);
           }),
         ]).then(function () {
           setTimeout(start, 40);
         });
 
-        /* 保底：4 秒后凡是还在视口里却没显示的，直接显示。
-           防的是浏览器把 IntersectionObserver 节流掉导致内容永远不出现。 */
+        /* 保底：4 秒后无论如何都要把内容放出来。
+           防的是字体请求卡住或 IntersectionObserver 被节流，导致整页空白。 */
         setTimeout(function () {
+          document.documentElement.classList.add('fonts-ready');
           els.forEach(function (el) {
             if (el.classList.contains('is-in')) return;
             var r = el.getBoundingClientRect();

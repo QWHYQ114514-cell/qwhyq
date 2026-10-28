@@ -214,6 +214,28 @@ img {
 }
 
 /* ============================================================
+   整页字体门禁：字体没就绪前，内容区不显示。
+   明朝体是按 unicode-range 切成上百片的，逐个元素隐藏永远会漏
+   （卡片标题、列表行、Now 区都不带 data-reveal），
+   所以在 main 这一层挡住，字体到位后整块淡入。
+   ============================================================ */
+main {
+  transition:
+    opacity 700ms var(--ease-reveal),
+    transform 700ms var(--ease-reveal);
+}
+
+.js main {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.js.fonts-ready main {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
    滚动揭示：只在 JS 可用时隐藏，避免无 JS 时白屏
    ============================================================ */
 .js [data-reveal] {
@@ -337,6 +359,10 @@ img {
     transition-duration: 0.01ms !important;
   }
   .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+  .js main {
     opacity: 1;
     transform: none;
   }
