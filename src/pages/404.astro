@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="页面不存在" description="这个地址没有内容。">
+  <section class="notfound">
+    <div class="container">
+      <p class="eyebrow">404</p>
+      <h1 class="h1">这页不存在。</h1>
+      <p class="lead lead-text">地址可能写错了，或者内容已经被删掉。</p>
+      <div class="actions">
+        <a class="cta" href="/">回首页 <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="cta" href="/projects/">看项目 <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .notfound {
+    display: flex;
+    align-items: center;
+    min-height: calc(100svh - var(--nav-h));
+    padding-block: 64px;
+  }
+
+  h1 {
+    margin-top: 24px;
+  }
+
+  .lead-text {
+    margin-top: 20px;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-top: 40px;
+  }
+</style>

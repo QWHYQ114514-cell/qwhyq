@@ -1,0 +1,132 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { getCollection } from 'astro:content';
+import { fmtDate, readingTime } from '../../lib/format';
+
+const thoughts = (await getCollection('thoughts'))
+  .filter((t) => !t.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<Base title="思考" description="短文：一个观点、一个例子、一句结论。三百到八百字，不追求体系。">
+  <PageHeader title="思考" />
+
+  <section class="section">
+    <div class="container">
+      <ul class="list">
+        {
+          thoughts.map((thought) => (
+            <li>
+              <a href={`/thoughts/${thought.id}/`}>
+                <time datetime={thought.data.date.toISOString()}>
+                  {fmtDate(thought.data.date)}
+                </time>
+                <div class="body">
+                  <h2 class="title">{thought.data.title}</h2>
+                  {thought.data.summary && <p class="summary">{thought.data.summary}</p>}
+                </div>
+                <span class="tags">
+                  {thought.data.tags.map((tag) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </span>
+                <span class="time">{readingTime(thought.body)} 分钟</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .section {
+    padding-top: 8px;
+  }
+
+  .list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--c-line);
+  }
+
+  .list li {
+    border-bottom: 1px solid var(--c-line);
+    border-radius: 14px;
+    transition:
+      background-color var(--dur-micro) var(--ease-apple),
+      box-shadow var(--dur-micro) var(--ease-apple),
+      transform var(--dur-micro) var(--ease-apple),
+      border-color var(--dur-micro) var(--ease-apple);
+  }
+
+  .list li:hover {
+    background: var(--c-raised);
+    border-bottom-color: transparent;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .list a {
+    display: grid;
+    grid-template-columns: 104px 1fr auto 72px;
+    align-items: baseline;
+    gap: 24px;
+    padding: 28px 16px;
+  }
+
+  time {
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .title {
+    font-size: 23px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .summary {
+    margin-top: 6px;
+    font-size: var(--fs-sm);
+    color: var(--c-ink-2);
+    text-wrap: pretty;
+  }
+
+  .tags {
+    display: flex;
+    gap: 8px;
+  }
+
+  .tag {
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    letter-spacing: 0.02em;
+  }
+
+  .time {
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 720px) {
+    .list a {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding-block: 22px;
+    }
+    .title {
+      font-size: 20px;
+    }
+    .tags,
+    .time {
+      display: none;
+    }
+  }
+</style>

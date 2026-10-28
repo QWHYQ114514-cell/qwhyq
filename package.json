@@ -1,0 +1,19 @@
+{
+  "name": "qwhyq",
+  "type": "module",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@fontsource/noto-serif-sc": "^5.3.1",
+    "astro": "^5.18.2"
+  }
+}

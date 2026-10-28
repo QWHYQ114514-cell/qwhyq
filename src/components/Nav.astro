@@ -1,0 +1,88 @@
+---
+const path = Astro.url.pathname;
+
+const links = [
+  { href: '/', label: 'WHY' },
+  { href: '/projects/', label: '项目' },
+  { href: '/contests/', label: '竞赛' },
+  { href: '/thoughts/', label: '思考' },
+  { href: '/now/', label: 'Now' },
+  { href: '/about/', label: '关于' },
+];
+
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(href);
+---
+
+<header class="nav-wrap">
+  <nav class="nav-bar" aria-label="主导航">
+    {
+      links.map((link) => (
+        <a
+          class:list={['link', { 'is-active': isActive(link.href) }]}
+          href={link.href}
+          aria-current={isActive(link.href) ? 'page' : undefined}
+        >
+          {link.label}
+        </a>
+      ))
+    }
+  </nav>
+</header>
+
+<style>
+  /* 贴顶容器，宽度满铺；粉色条本身的圆角只在最上方两个角切出缺口 */
+  .nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--c-canvas);
+  }
+
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(18px, 3vw, 40px);
+    height: var(--nav-h);
+    padding-inline: 12px;
+    border-radius: 16px 16px 0 0;
+    background: var(--c-pink);
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    height: var(--nav-h);
+    font-size: clamp(11px, 0.85vw, 12.5px);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+    color: #ffffff;
+    transition:
+      color var(--dur-micro) var(--ease-apple),
+      transform var(--dur-micro) var(--ease-apple);
+  }
+
+  .link:hover {
+    color: #ffffff;
+    transform: translateY(-1px) scale(1.06);
+  }
+
+  .link.is-active {
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  @media (max-width: 560px) {
+    .nav-bar {
+      gap: 16px;
+      padding-inline: 8px;
+      border-radius: 14px 14px 0 0;
+    }
+    .link {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+    }
+  }
+</style>

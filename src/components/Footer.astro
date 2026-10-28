@@ -1,0 +1,107 @@
+---
+const year = new Date().getFullYear();
+
+const nav = [
+  { href: '/projects/', label: '项目' },
+  { href: '/contests/', label: '竞赛' },
+  { href: '/thoughts/', label: '思考' },
+  { href: '/now/', label: 'Now' },
+  { href: '/about/', label: '关于' },
+];
+---
+
+<footer class="footer">
+  <div class="container footer-grid">
+    <div class="brand">
+      <a class="wordmark" href="/">WHY</a>
+      <p class="tagline">人工智能专业 · 2026 级</p>
+    </div>
+
+    <nav class="col" aria-label="站内导航">
+      {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+
+    <div class="col">
+      <a href="mailto:hi@qwhyq.com">邮箱</a>
+      <a href="https://github.com/QWHYQ114514-cell" rel="me">GitHub</a>
+      <a href="/rss.xml">RSS</a>
+    </div>
+  </div>
+
+  <div class="container bottom">
+    <span>© {year} WHY</span>
+    <span>纯静态 · Astro 构建 · 无 JS 框架</span>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--c-line);
+    padding-top: 64px;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 56px;
+  }
+
+  .wordmark {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+  }
+
+  .tagline {
+    margin-top: 10px;
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    letter-spacing: 0.02em;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: var(--fs-sm);
+    color: var(--c-ink-2);
+  }
+
+  .col a {
+    width: fit-content;
+    transition:
+      color var(--dur-micro) var(--ease-apple),
+      transform var(--dur-micro) var(--ease-apple);
+  }
+
+  .col a:hover {
+    color: var(--c-ink);
+    transform: translateY(-1px) scale(1.04);
+  }
+
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 20px;
+    border-top: 1px solid var(--c-line);
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+  }
+
+  @media (max-width: 720px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      padding-bottom: 40px;
+    }
+    .brand {
+      grid-column: 1 / -1;
+    }
+    .bottom {
+      flex-direction: column;
+      gap: 6px;
+    }
+  }
+</style>

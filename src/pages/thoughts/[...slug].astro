@@ -1,0 +1,85 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { fmtDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const thoughts = await getCollection('thoughts');
+  return thoughts
+    .filter((thought) => !thought.data.draft)
+    .map((thought) => ({
+      params: { slug: thought.id },
+      props: { thought },
+    }));
+}
+
+const { thought } = Astro.props;
+const { Content } = await render(thought);
+const { title, date, tags } = thought.data;
+---
+
+<Base title={title} description={thought.data.summary ?? title} ogType="article">
+  <article class="detail">
+    <div class="container">
+      <a class="back" href="/thoughts/">← 全部思考</a>
+
+      <p class="eyebrow detail-eyebrow">
+        <span>{fmtDate(date)}</span>
+        {tags.length > 0 && <span class="sep">/</span>}
+        <span>{tags.join(' · ')}</span>
+      </p>
+
+      <h1 class="h1">{title}</h1>
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <div class="foot">
+        <a class="cta" href="/thoughts/">全部思考 <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .detail {
+    padding-block: clamp(40px, 6vw, 72px) var(--space-section);
+  }
+
+  .back {
+    display: inline-block;
+    margin-bottom: 40px;
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    transition: color var(--dur-micro) var(--ease-apple);
+  }
+
+  .back:hover {
+    color: var(--c-ink);
+  }
+
+  .detail-eyebrow {
+    display: flex;
+    gap: 8px;
+  }
+
+  .sep {
+    color: var(--c-line);
+  }
+
+  h1 {
+    margin-top: 20px;
+    max-width: 16em;
+  }
+
+  .prose {
+    margin-top: 40px;
+  }
+
+  .foot {
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--c-line);
+  }
+</style>

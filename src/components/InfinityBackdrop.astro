@@ -1,0 +1,123 @@
+---
+import { INFINITY_PATH, INFINITY_LENGTH } from '../lib/infinity';
+
+/* 固定种子的伪随机：每次构建出的"乱"是同一套，不会刷一次变一次 */
+function seeded(seed: number) {
+  let a = seed;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const rnd = seeded(20261028);
+
+/* 30 条短线：位置、长短、速度、相位、粗细、透明度全都不同。
+   没有"主点"——它们只是各自跑，叠在一起才成了一条光带。
+   相位用分层再抖动的方式铺开，避免全挤在同一段上 */
+const COUNT = 40;
+const lines = Array.from({ length: COUNT }, (_, i) => {
+  const rot = (rnd() - 0.5) * 3.4; // ±1.7°，把线摊开成带宽
+  const sc = 1 + (rnd() - 0.5) * 0.03;
+  const dy = (rnd() - 0.5) * 9;
+  const dash = 0.018 + rnd() * 0.04; // 每条只占全长 2%–6%
+  const dur = 8 + rnd() * 8;
+  const delay = -((i + rnd() * 0.7) / COUNT) * dur;
+  const width = 1.1 + rnd() * 1.4;
+  const opacity = 0.3 + rnd() * 0.45;
+  return { rot, sc, dy, dash, dur, delay, width, opacity };
+});
+
+const tf = ({ rot, sc, dy }: { rot: number; sc: number; dy: number }) =>
+  `translate(0 ${dy.toFixed(1)}) rotate(${rot.toFixed(2)} 800 350) translate(800 350) scale(${sc.toFixed(4)}) translate(-800 -350)`;
+
+const svg = `
+<svg viewBox="0 0 1600 700" fill="none" preserveAspectRatio="xMidYMid meet" class="inf-svg" style="--len:${INFINITY_LENGTH}">
+  <defs>
+    <path id="inf-path" d="${INFINITY_PATH}" />
+    <filter id="inf-bloom" x="-10%" y="-30%" width="120%" height="160%">
+      <feGaussianBlur stdDeviation="9" />
+    </filter>
+  </defs>
+
+  <!-- 极淡的辉光：负责"发光"的那层，压得低，太亮就变成实心带了 -->
+  <g class="inf-glow" filter="url(#inf-bloom)">
+    <use href="#inf-path" stroke-width="8" opacity="0.17" />
+  </g>
+
+  <!-- 会被看清的骨架：极淡的一条，保证任何时候都看得出是个 ∞ -->
+  <use href="#inf-path" class="inf-base" />
+
+  <!-- 20 条各自奔跑的短线 -->
+  <g class="inf-lines">
+    ${lines
+      .map(
+        (l) =>
+          `<use href="#inf-path" class="inf-move" transform="${tf(l)}" style="
+             stroke-width:${l.width.toFixed(2)};
+             opacity:${l.opacity.toFixed(2)};
+             stroke-dasharray:${(l.dash * INFINITY_LENGTH).toFixed(1)} ${((1 - l.dash) * INFINITY_LENGTH).toFixed(1)};
+             animation-duration:${l.dur.toFixed(2)}s;
+             animation-delay:${l.delay.toFixed(2)}s;" />`
+      )
+      .join('')}
+  </g>
+</svg>`;
+---
+
+<span class="infinity" aria-hidden="true" set:html={svg} />
+
+<style is:global>
+  .infinity {
+    position: absolute;
+    /* 右移 0.195em：h1 为了把 H 拉到中线已经整体左移了这个量，
+       无限符号要跟着回到 H 的正上方（em 在这里等于 h1 的字号） */
+    left: calc(50% + 0.195em);
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    line-height: 0;
+    pointer-events: none;
+  }
+
+  .infinity .inf-svg {
+    display: block;
+    width: min(1400px, 96vw);
+    height: auto;
+  }
+
+  .infinity .inf-glow {
+    stroke: #28f9f9;
+  }
+
+  .infinity .inf-base {
+    stroke: #28f9f9;
+    stroke-width: 1;
+    opacity: 0.1;
+  }
+
+  .infinity .inf-move {
+    stroke: #28f9f9;
+    stroke-linecap: round;
+    fill: none;
+    animation-name: inf-move;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .infinity .inf-move {
+      animation: none;
+    }
+  }
+</style>
+
+<!--
+  关键帧里的位移值必须是字面量：写成 calc(var(--len) * -1) 会被浏览器丢弃，
+  动画就完全不动（所有线都停在路径起点）。这个数字来自路径总长，
+  用 set:html 注入，改路径时会一起变。
+-->
+<style is:global set:html={`@keyframes inf-move { to { stroke-dashoffset: ${(-INFINITY_LENGTH).toFixed(1)}; } }`} />

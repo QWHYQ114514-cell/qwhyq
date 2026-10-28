@@ -1,0 +1,109 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { fmtDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const contests = await getCollection('contests');
+  return contests.map((contest) => ({
+    params: { slug: contest.id },
+    props: { contest },
+  }));
+}
+
+const { contest } = Astro.props;
+const { Content } = await render(contest);
+const { title, date, track, team, result } = contest.data;
+---
+
+<Base title={title} description={`${title} · ${track} · ${result}`} ogType="article">
+  <article class="detail">
+    <div class="container">
+      <a class="back" href="/contests/">← 全部竞赛</a>
+
+      <p class="eyebrow detail-eyebrow">
+        <span>竞赛</span>
+        <span class="sep">/</span>
+        <span>{fmtDate(date)}</span>
+      </p>
+
+      <h1 class="h1">{title}</h1>
+
+      <dl class="meta">
+        <div>
+          <dt>形式</dt>
+          <dd>{track}</dd>
+        </div>
+        <div>
+          <dt>队伍</dt>
+          <dd>{team}</dd>
+        </div>
+        <div>
+          <dt>结果</dt>
+          <dd>{result}</dd>
+        </div>
+      </dl>
+
+      <hr class="rule" />
+
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .detail {
+    padding-block: clamp(40px, 6vw, 72px) var(--space-section);
+  }
+
+  .back {
+    display: inline-block;
+    margin-bottom: 40px;
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    transition: color var(--dur-micro) var(--ease-apple);
+  }
+
+  .back:hover {
+    color: var(--c-ink);
+  }
+
+  .detail-eyebrow {
+    display: flex;
+    gap: 10px;
+  }
+
+  .sep {
+    color: var(--c-line);
+  }
+
+  h1 {
+    margin-top: 20px;
+    max-width: 18em;
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin: 40px 0 40px;
+  }
+
+  .meta dt {
+    margin-bottom: 6px;
+    font-size: var(--fs-caption);
+    letter-spacing: 0.08em;
+    color: var(--c-ink-3);
+  }
+
+  .meta dd {
+    margin: 0;
+    font-size: var(--fs-sm);
+  }
+
+  .prose {
+    margin-top: 40px;
+  }
+</style>

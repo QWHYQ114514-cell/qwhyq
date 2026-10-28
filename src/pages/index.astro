@@ -1,0 +1,449 @@
+---
+import Base from '../layouts/Base.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import InfinityBackdrop from '../components/InfinityBackdrop.astro';
+import { getCollection } from 'astro:content';
+import { fmtDate } from '../lib/format';
+
+const allProjects = await getCollection('projects');
+const projects = allProjects.filter((p) => p.data.status !== 'archived');
+
+const featured = projects.filter((p) => p.data.featured);
+const shown = (featured.length ? featured : projects).slice(0, 3);
+
+const contests = (await getCollection('contests')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+
+const thoughts = (await getCollection('thoughts'))
+  .filter((t) => !t.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const now = (await getCollection('now'))[0];
+
+type Update = { kind: string; title: string; href: string; date: Date; label?: string };
+
+const updates: Update[] = [
+  ...projects.map((p) => ({
+    kind: '项目',
+    title: p.data.title,
+    href: `/projects/${p.id}/`,
+    date: new Date(`${p.data.start}-01T00:00:00Z`),
+    label: p.data.start.replace('-', '.'),
+  })),
+  ...contests.map((c) => ({
+    kind: '竞赛',
+    title: c.data.title,
+    href: `/contests/${c.id}/`,
+    date: c.data.date,
+  })),
+  ...thoughts.map((t) => ({
+    kind: '思考',
+    title: t.data.title,
+    href: `/thoughts/${t.id}/`,
+    date: t.data.date,
+  })),
+]
+  .sort((a, b) => b.date.getTime() - a.date.getTime())
+  .slice(0, 5);
+---
+
+<Base description="WHY —— 项目、竞赛、思考，以及正在做的事。">
+  <!-- ===== Hero：WHY / 无限进步 ===== -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <h1 class="hero-mark" data-reveal>
+        <InfinityBackdrop />
+        <span class="g g-w">W</span><span class="g g-h">H</span><span class="g g-y">Y</span>
+      </h1>
+      <p class="hero-sub" data-reveal>无限进步</p>
+    </div>
+  </section>
+
+  <!-- ===== Now 快照 ===== -->
+  {
+    now && (
+      <section class="now" aria-labelledby="now-title">
+        <div class="container">
+          <div class="now-head">
+            <span class="now-title" id="now-title" data-reveal>
+              现在
+            </span>
+            <a class="now-more" href="/now/" data-reveal>
+              {fmtDate(now.data.updated)} 更新
+            </a>
+          </div>
+
+          <dl class="now-grid" data-reveal>
+            <div>
+              <dt>在学</dt>
+              <dd>{now.data.learning}</dd>
+            </div>
+            <div>
+              <dt>在做</dt>
+              <dd>{now.data.building}</dd>
+            </div>
+            <div>
+              <dt>在找</dt>
+              <dd>{now.data.looking}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ===== 精选项目 ===== -->
+  <section class="section">
+    <div class="container">
+      <header class="sec-head">
+        <h2 class="h2" data-reveal>精选项目</h2>
+      </header>
+
+      <div class="grid-work">
+        {shown.map((project) => <ProjectCard project={project} />)}
+      </div>
+
+      <div class="sec-foot" data-reveal>
+        <a class="cta" href="/projects/">全部项目 <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 最近更新 ===== -->
+  <section class="section section--tight">
+    <div class="container">
+      <header class="sec-head">
+        <h2 class="h2" data-reveal>最近更新</h2>
+      </header>
+
+      <ul class="updates" data-reveal>
+        {
+          updates.map((item) => (
+            <li>
+              <a href={item.href}>
+                <time datetime={item.date.toISOString()}>{item.label ?? fmtDate(item.date)}</time>
+                <span class="kind">{item.kind}</span>
+                <span class="title">{item.title}</span>
+                <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== 竞赛 ===== -->
+  {
+    contests.length > 0 && (
+      <section class="section section--tight">
+        <div class="container">
+          <header class="sec-head">
+            <h2 class="h2" data-reveal>竞赛</h2>
+          </header>
+
+          <ul class="contests" data-reveal>
+            {contests.map((contest) => (
+              <li>
+                <a href={`/contests/${contest.id}/`}>
+                  <time datetime={contest.data.date.toISOString()}>
+                    {fmtDate(contest.data.date)}
+                  </time>
+                  <span class="c-title">{contest.data.title}</span>
+                  <span class="c-track">{contest.data.track}</span>
+                  <span class="pill pill--outline">{contest.data.result}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  /* ---------- Hero：WHY / 无限进步 ---------- */
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100svh - var(--nav-h));
+    /* 导航占了 44px 的高度：下内边距多留一份，把内容整体抬 22px，
+       这样 H 的中心才落在视口中线，而不是中线下方 22px */
+    padding-top: 64px;
+    padding-bottom: calc(64px + var(--nav-h));
+    overflow: hidden;
+  }
+
+  .hero-inner {
+    /* 只在这里定义一个尺寸，副标题严格取它的十分之一 */
+    --mark: clamp(120px, 21vw, 250px);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* 无限符号直接锚在 h1 上（h1 的盒子就是这一行字），
+     所以它的中心必然等于 H 的中心，任何屏宽、任何字号都不会偏 */
+  .hero-mark {
+    position: relative;
+    /*
+      让 H 的几何中心落在视口中线上。
+      这套明朝体的字宽是实测的：W=1.091em、H=0.862em、Y=0.701em，
+      W 比 Y 宽 0.390em，所以整组居中时 H 会偏右 0.195em —— 往左补回来。
+    */
+    left: calc(var(--mark) * -0.195);
+    display: flex;
+    font-family: var(--font-serif);
+    font-size: var(--mark);
+    font-weight: 700;
+    line-height: 0.9;
+    color: var(--c-pink);
+  }
+
+  .g {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+  }
+
+  /* W 收窄 10%；锚在右边缘，所以 W 和 H 之间不会裂开一道缝。
+     不能再压更狠：横向缩放会把 W 的竖笔画一起压细，跟 H 的笔画重量对不上 */
+  .g-w {
+    transform: scaleX(0.9);
+    transform-origin: right center;
+  }
+
+  .hero-sub {
+    margin-top: calc(var(--mark) * 0.08);
+    /* 十分之一 */
+    font-size: calc(var(--mark) / 10);
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    padding-left: 0.28em; /* 补偿末字字距，保证真正居中 */
+    color: var(--c-ink);
+  }
+
+  /* ---------- Now ---------- */
+  .now {
+    padding-block: clamp(40px, 6vw, 72px);
+    background: var(--c-raised);
+  }
+
+  .now-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .now-title {
+    font-size: var(--fs-caption);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--c-ink-2);
+  }
+
+  .now-more {
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .now-more:hover {
+    color: var(--c-ink);
+  }
+
+  .now-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin: 0;
+  }
+
+  .now-grid dt {
+    margin-bottom: 8px;
+    font-size: var(--fs-caption);
+    letter-spacing: 0.08em;
+    color: var(--c-ink-3);
+  }
+
+  .now-grid dd {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+
+  /* ---------- 区块头 ---------- */
+  .sec-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 48px;
+  }
+
+  .sec-foot {
+    margin-top: 40px;
+  }
+
+  .section--tight {
+    padding-block: clamp(56px, 7vw, 96px);
+  }
+
+  /* ---------- 项目网格 ---------- */
+  .grid-work {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  /* ---------- 更新列表 ---------- */
+  .updates {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--c-line);
+  }
+
+  .updates li {
+    border-bottom: 1px solid var(--c-line);
+    border-radius: 14px;
+    transition:
+      background-color var(--dur-micro) var(--ease-apple),
+      box-shadow var(--dur-micro) var(--ease-apple),
+      transform var(--dur-micro) var(--ease-apple),
+      border-color var(--dur-micro) var(--ease-apple);
+  }
+
+  /* 整行作为一个模块被选中：浮起 + 阴影，而不是文字加下划线 */
+  .updates li:hover {
+    background: var(--c-raised);
+    border-bottom-color: transparent;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .updates a {
+    display: grid;
+    grid-template-columns: 104px 48px 1fr 24px;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 16px;
+  }
+
+  .updates time,
+  .updates .kind {
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  .updates .title {
+    font-family: var(--font-serif);
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .updates .arrow {
+    color: var(--c-ink-3);
+    opacity: 0;
+    transition:
+      opacity var(--dur-micro) var(--ease-apple),
+      transform var(--dur-micro) var(--ease-apple);
+  }
+
+  .updates li:hover .arrow {
+    opacity: 1;
+    transform: translateX(4px);
+  }
+
+  /* ---------- 竞赛 ---------- */
+  .contests {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--c-line);
+  }
+
+  .contests li {
+    border-bottom: 1px solid var(--c-line);
+    border-radius: 14px;
+    transition:
+      background-color var(--dur-micro) var(--ease-apple),
+      box-shadow var(--dur-micro) var(--ease-apple),
+      transform var(--dur-micro) var(--ease-apple),
+      border-color var(--dur-micro) var(--ease-apple);
+  }
+
+  .contests li:hover {
+    background: var(--c-raised);
+    border-bottom-color: transparent;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .contests a {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 16px;
+  }
+
+  .contests time {
+    min-width: 96px;
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .c-title {
+    font-size: var(--fs-body);
+  }
+
+  .c-track {
+    margin-right: auto;
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+  }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 860px) {
+    .now-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      min-height: auto;
+      padding-block: 96px;
+    }
+    .updates a {
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding-block: 18px;
+    }
+    .updates .arrow {
+      display: none;
+    }
+    .updates time,
+    .updates .kind {
+      display: inline;
+    }
+    .updates .kind::before {
+      content: '· ';
+    }
+  }
+</style>

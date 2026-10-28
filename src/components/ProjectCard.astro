@@ -1,0 +1,124 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { STATUS_LABEL, fmtMonth } from '../lib/format';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { status, title, summary, stack, start } = project.data;
+
+const tone =
+  status === 'building' ? 'pill' : status === 'live' ? 'pill pill--muted' : 'pill pill--outline';
+---
+
+<article class:list={['card', { 'is-seed': status === 'seed' }]}>
+  <a class="hit" href={`/projects/${project.id}/`}>
+    <div class="head">
+      <span class={tone}>{STATUS_LABEL[status]}</span>
+      <span class="when">{fmtMonth(start)}</span>
+    </div>
+
+    <h3>{title}</h3>
+    <p class="summary">{summary}</p>
+
+    <div class="foot">
+      <span class="stack">{stack.join(' · ')}</span>
+      <span class="arrow" aria-hidden="true">→</span>
+    </div>
+  </a>
+</article>
+
+<style>
+  .card {
+    height: 100%;
+    background: var(--c-raised);
+    border: 1px solid var(--c-line);
+    border-radius: var(--r-card);
+    transition:
+      border-color var(--dur-micro) var(--ease-apple),
+      box-shadow var(--dur-micro) var(--ease-apple),
+      transform var(--dur-micro) var(--ease-apple);
+  }
+
+  /* 只有想法：虚线边框，一眼看出和成品不是一回事 */
+  .card.is-seed {
+    border-style: dashed;
+  }
+
+  .card:hover {
+    border-color: #c7c7cd;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px) scale(1.008);
+  }
+
+  .hit {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 32px;
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .when {
+    font-size: var(--fs-caption);
+    color: var(--c-ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h3 {
+    margin-top: 28px;
+    font-size: 26px;
+    line-height: 1.4;
+  }
+
+  .summary {
+    margin-top: 12px;
+    font-size: var(--fs-sm);
+    line-height: 1.75;
+    color: var(--c-ink-2);
+    text-wrap: pretty;
+  }
+
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: 32px;
+  }
+
+  .stack {
+    font-size: var(--fs-caption);
+    letter-spacing: 0.02em;
+    color: var(--c-ink-3);
+  }
+
+  .arrow {
+    color: var(--c-ink-2);
+    transition: transform var(--dur-micro) var(--ease-apple);
+  }
+
+  .card:hover .arrow {
+    transform: translateX(4px);
+    color: var(--c-ink);
+  }
+
+  @media (max-width: 560px) {
+    .hit {
+      padding: 24px;
+    }
+    h3 {
+      margin-top: 20px;
+      font-size: 22px;
+    }
+  }
+</style>
