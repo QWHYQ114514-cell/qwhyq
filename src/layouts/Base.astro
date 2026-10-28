@@ -82,20 +82,49 @@ const canonical = new URL(Astro.url.pathname, site);
         }
 
         /*
-         * 等字体就绪再开始：明朝体是按 unicode-range 切片异步加载的，
-         * 先显示回退字体会让文字"抽"一下（swap），浮现动画也就看不出来了。
-         * 等字体这几百毫秒里，元素本来就是 opacity:0 且已经绘制过，
-         * 所以之后再加 is-in，过渡一定跑得起来（不需要再等帧）。
-         * 但最多等 700ms，不能因为字体慢就让内容一直藏着。
+         * 字体是拦路的：明朝体按 unicode-range 切成上百个分片，
+         * 某个页面用到的字片没下载完，浏览器就会先画回退字体再 swap。
+         *
+         * 注意 document.fonts.ready 只是"等已经进入下载队列的字体"，
+         * 正文（含章节标题）里的字片可能还没被请求，它就返回了 ——
+         * 于是正文先显示回退字体、随后突然变成明朝。
+         * 所以这里按每个元素实际用到的文字，用 document.fonts.load 主动点名加载。
          */
         var reveal = function (el) {
           el.classList.add('is-in');
         };
 
-        var fontsReady =
-          document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+        var fontSpec = function (el) {
+          var cs = window.getComputedStyle(el);
+          var family = (cs.fontFamily || 'sans-serif').split(',')[0].replace(/["']/g, '').trim();
+          return cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + family;
+        };
+
+        var loaders = [];
+        if (document.fonts && document.fonts.load) {
+          els.slice(0, 30).forEach(function (el) {
+            var text = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 240);
+            if (!text) return;
+            loaders.push(document.fonts.load(fontSpec(el), text).catch(function () {}));
+          });
+        }
 
         var start = function () {
+          /*
+           * 视口内的元素直接显示，不依赖 IntersectionObserver ——
+           * IO 在某些环境（省电模式、无头浏览器、后台标签页）会被节流，
+           * 一旦它不回调，首屏就会一直是空白。先手算一遍位置最稳。
+           */
+          var rest = [];
+          els.forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            var inView = r.top < window.innerHeight * 1.02 && r.bottom > 0;
+            if (inView) reveal(el);
+            else rest.push(el);
+          });
+
+          if (!rest.length) return;
+
           var io = new IntersectionObserver(
             function (entries) {
               entries.forEach(function (entry) {
@@ -107,12 +136,24 @@ const canonical = new URL(Astro.url.pathname, site);
             },
             { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
           );
-          els.forEach(function (el) {
+          rest.forEach(function (el) {
             io.observe(el);
           });
         };
 
-        Promise.race([fontsReady, new Promise(function (r) { setTimeout(r, 1200); })]).then(start);
+        /*
+         * 等字体加载完 + 40ms 再开始：这 40ms 保证 opacity:0 的初始态
+         * 至少被真正绘制过一帧，否则浏览器会把"隐藏"和"显示"合成一帧，
+         * 过渡根本不跑（表现就是文字直接蹦出来，没有浮现）。
+         */
+        Promise.race([
+          Promise.all(loaders),
+          new Promise(function (r) {
+            setTimeout(r, 900);
+          }),
+        ]).then(function () {
+          setTimeout(start, 40);
+        });
 
         /* 保底：4 秒后凡是还在视口里却没显示的，直接显示。
            防的是浏览器把 IntersectionObserver 节流掉导致内容永远不出现。 */
