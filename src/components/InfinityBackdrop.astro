@@ -51,15 +51,16 @@ const svg = `
   <!-- 会被看清的骨架：极淡的一条，保证任何时候都看得出是个 ∞ -->
   <use href="#inf-path" class="inf-base" />
 
-  <!-- 20 条各自奔跑的短线 -->
+  <!-- 40 条各自奔跑的短线 -->
   <g class="inf-lines">
     ${lines
       .map(
         (l) =>
           `<use href="#inf-path" class="inf-move" transform="${tf(l)}" style="
              stroke-width:${l.width.toFixed(2)};
-             opacity:${l.opacity.toFixed(2)};
-             stroke-dasharray:${(l.dash * INFINITY_LENGTH).toFixed(1)} ${((1 - l.dash) * INFINITY_LENGTH).toFixed(1)};
+             --o:${l.opacity.toFixed(2)};
+             --a:${(l.dash * INFINITY_LENGTH).toFixed(1)};
+             --b:${((1 - l.dash) * INFINITY_LENGTH).toFixed(1)};
              animation-duration:${l.dur.toFixed(2)}s;
              animation-delay:${l.delay.toFixed(2)}s;" />`
       )
@@ -103,14 +104,22 @@ const svg = `
     stroke: #28f9f9;
     stroke-linecap: round;
     fill: none;
+    /* 每条线的段长与透明度走自定义属性，这样"减少动效"时能被样式表覆盖 */
+    stroke-dasharray: var(--a) var(--b);
+    opacity: var(--o);
     animation-name: inf-move;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
+    /* 动画停掉后不能留着 dasharray：那样 40 段会全部叠在路径起点，
+       变成右侧一团。直接画成整条，静止的光带。 */
     .infinity .inf-move {
       animation: none;
+      stroke-dasharray: none;
+      /* 40 条整线叠在一起会非常亮，压低每条的透明度合成一条柔和的带 */
+      opacity: 0.13;
     }
   }
 </style>
