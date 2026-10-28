@@ -124,30 +124,43 @@ looking: 一个能长期做下去的方向，暂时不急着定
 
 ## 四、部署
 
-1. 推到 GitHub（仓库名随意，建议 `qwhyq`）：
+仓库已经初始化并提交过（`git log` 里有一条 `feat: WHY 个人站`），本地是 `main` 分支。
+
+1. 在 GitHub 建一个空仓库（不要勾选 README / .gitignore），然后：
 
    ```bash
-   git init
-   git add .
-   git commit -m "init: personal site"
    git remote add origin https://github.com/QWHYQ114514-cell/qwhyq.git
    git push -u origin main
    ```
 
-2. 打开 [vercel.com](https://vercel.com) → Add New → Project → 选这个仓库。
-   框架会被自动识别为 Astro，构建命令 `pnpm build`，输出目录 `dist`，不用改。
-3. 域名：Vercel 项目 → Settings → Domains → 添加 `qwhyq.com`，按提示到域名商改 DNS（A 记录或 CNAME）。
-   配好之前先用 `qwhyq.vercel.app` 也完全能发。
+2. 打开 [vercel.com](https://vercel.com) → Add New → Project → Import 这个仓库。
+   框架会被自动识别为 **Astro**；构建命令 `pnpm build`、输出目录 `dist`，都不用改。
+   环境变量一个都不需要。
+
+3. 域名：Vercel 项目 → Settings → Domains → 添加 `qwhyq.com`，按提示到域名商改 DNS。
+   还没配好之前，`<repo>.vercel.app` 就能直接用。
+
+上线后自检这几项（都已经是现成的）：
+
+| 检查 | 地址 |
+|---|---|
+| 首页 | `/` |
+| 404 | 随便输一个不存在的路径 |
+| RSS | `/rss.xml` |
+| sitemap | `/sitemap.xml` |
+| robots | `/robots.txt` |
+| 分享图 | `/og.png` |
 
 ---
 
 ## 五、还要做的（TODO）
 
-- [ ] `hi@qwhyq.com` 是占位邮箱，换成真的（`src/components/Footer.astro`、`src/pages/about.astro`）
-- [ ] 3 个项目、1 个竞赛、2 篇思考都是示例，替换成真的（`src/content/`）
-- [ ] 各栏目的说明文字已按你的要求全部删掉，想加的时候自己写进 `PageHeader` 的 `lead`
-- [ ] 人像照：About 页目前没有照片位，照片到位后再加
-- [ ] OG 分享图：现在只有 meta 标签，没有图片（朋友圈/推特分享不会显示大图）
+> **注意：页面上的正文目前是示例内容。** 三个项目、一个竞赛、两篇思考、Now、关于页的时间线，都是我为了让版式能看而写的，不是你的真实经历。**正式对外之前必须替换掉**，否则等于公开发布没发生过的事。
+
+- [ ] 替换 `src/content/` 下全部示例内容（3 项目 / 1 竞赛 / 2 思考 / Now）
+- [ ] About 页的「经历」「技能」改成你自己的
+- [ ] `hi@qwhyq.com` 是占位邮箱（`src/components/Footer.astro`、`src/pages/about.astro`）
+- [ ] 人像照：About 页现在没有照片位，照片到位后再加
 - [ ] 可选：Pagefind 静态搜索（内容超过 20 篇再加）
 - [ ] 可选：深色模式（颜色已经全部走变量，加一组值即可）
 
