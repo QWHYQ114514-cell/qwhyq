@@ -8,8 +8,11 @@ import { fmtDate } from '../lib/format';
 const allProjects = await getCollection('projects');
 const projects = allProjects.filter((p) => p.data.status !== 'archived');
 
-const featured = projects.filter((p) => p.data.featured);
-const shown = (featured.length ? featured : projects).slice(0, 3);
+// 精选排前面，不足 3 个就用其余项目补齐，首页不至于只剩一张卡
+const shown = [
+  ...projects.filter((p) => p.data.featured),
+  ...projects.filter((p) => !p.data.featured),
+].slice(0, 3);
 
 const contests = (await getCollection('contests')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()

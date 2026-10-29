@@ -1,7 +1,7 @@
 ---
-updated: 2026-10-28
-learning: 线性代数（矩阵分解）、Python 与 NumPy 基础
-building: 从零实现的手写数字识别，卡在 softmax 的反向传播
-reading: 《深度学习》第一章、《数学之美》
-looking: 一个能长期做下去的方向，暂时不急着定
+updated: 2026-10-29
+learning: C 语言、Linux、Agent、Skill、机器人视觉、数学建模
+building: 论文 LaTeX、C 语言程序、Vibe Coding 小程序
+reading: 《乔布斯传》《非暴力沟通》
+looking: 一个自己真正感兴趣的方向
 ---

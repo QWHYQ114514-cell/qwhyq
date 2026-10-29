@@ -8,3 +8,4 @@ dist/
 .env
 .env.production
 *.zip
+内容模板.md
